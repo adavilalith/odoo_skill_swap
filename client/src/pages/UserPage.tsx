@@ -94,9 +94,10 @@ const UserPage = () => {
           <img
             src={user.photo}
             alt={user.name}
-            className="w-24 h-24 rounded-full object-cover"
+            className="w-32  h-32 rounded-full object-cover"
           />
         </div>
+          <h2 className="text-2xl ">{user.email}</h2>
 
         <div className="mt-6 space-y-4">
           <div>
