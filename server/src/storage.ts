@@ -139,8 +139,21 @@ export const addReview = async (
     timestamp: new Date(),
   };
 
+  // Insert review
   await db.collection("reviews").insertOne(review);
+
+  // Fetch all reviews for the reviewed user
+  const allReviews = await db.collection("reviews").find({ reviewedEmail }).toArray();
+  const total = allReviews.reduce((sum, r) => sum + r.rating, 0);
+  const avgRating = allReviews.length > 0 ? total / allReviews.length : 0;
+
+  // Update user's average rating
+  await db.collection("users").updateOne(
+    { email: reviewedEmail },
+    { $set: { rating: parseFloat(avgRating.toFixed(2)) } }
+  );
 };
+
 
 export const getReviewsByUser = async (email: string) => {
   const db = getDB();
