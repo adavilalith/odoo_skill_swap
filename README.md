@@ -81,7 +81,7 @@ npx ts-node server/src/populate.ts
 * 🧼 Clean, intuitive UI
 * 🔄 Real-time skill exchange flow
 * ✅ Auth + validation implemented
-* 🛡️ CLI tool for future admin controls
+* 🛡️ CLI tool for admin controls
 * 📈 Ready for scale and future features like chat, notification, or AI matching
 
 ---
