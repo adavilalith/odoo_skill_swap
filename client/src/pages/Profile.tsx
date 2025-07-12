@@ -1,85 +1,186 @@
-import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import Navbar from "../components/Navbar";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-interface UserInfo {
-  name: string;
-  email: string;
-  photo: string;
-  skillsOffered: string[];
-  skillsWanted: string[];
-  rating: number;
-}
+import Navbar from "../components/Navbar";
 
 const Profile = () => {
-  const { user } = useAuth();
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { isLoggedIn, user } = useAuth();
   const navigate = useNavigate();
 
+  const [form, setForm] = useState({
+    name: user?.name || "",
+    email: user?.email || "",
+    location: "",
+    photo: user?.photo || "",
+    skillsOffered: user?.skillsOffered || [],
+    skillsWanted: user?.skillsWanted || [],
+    availability: "weekends",
+    isPublic: true,
+  });
+
+  const [newOffered, setNewOffered] = useState("");
+  const [newWanted, setNewWanted] = useState("");
+
   useEffect(() => {
-    if (!user?.email) {
-      navigate("/"); 
-      return;
-    }
+    if (!isLoggedIn) navigate("/login");
+  }, [isLoggedIn, navigate]);
 
-    const fetchUserInfo = async () => {
-      setLoading(true);
+  const handleChange = (field: string, value: string | boolean) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
 
-      // Simulate API call
-      const response = await new Promise<UserInfo>((resolve) => {
-        setTimeout(() => {
-          resolve({
-            name: "Marc Demo",
-            email: user.email,
-            photo: "https://i.pravatar.cc/100?u=" + user.email,
-            skillsOffered: ["JavaScript", "Python"],
-            skillsWanted: ["Photoshop", "Graphic designer"],
-            rating: 4.2,
-          });
-        }, 1000);
+  const removeTag = (type: "skillsOffered" | "skillsWanted", index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      [type]: prev[type].filter((_, i) => i !== index),
+    }));
+  };
+
+  const addTag = (type: "skillsOffered" | "skillsWanted", value: string) => {
+    if (value.trim() === "") return;
+    setForm((prev) => ({
+      ...prev,
+      [type]: [...prev[type], value.trim()],
+    }));
+    if (type === "skillsOffered") setNewOffered("");
+    else setNewWanted("");
+  };
+
+  const handleSave = async () => {
+    try {
+      const res = await fetch("/api/updateUserByEmail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user?.email, updates: form }),
       });
+      if (res.ok) {
+        alert("Profile updated!");
+      } else {
+        const errorData = await res.json();
+        alert("Failed to update profile.\n" + errorData.error || "Unknown error");
+      }
+    } catch (err) {
+      console.error("Error saving profile:", err);
+    }
+  };
 
-      setUserInfo(response);
-      setLoading(false);
-    };
+  const handleDiscard = () => {
+    navigate("/home");
+  };
 
-    fetchUserInfo();
-  }, [user?.email, navigate]);
+  if (!user) return null;
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="p-6 max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Your Profile</h1>
 
-        {loading ? (
-          <p>Loading your profile...</p>
-        ) : userInfo ? (
-          <div className="bg-white rounded-lg shadow-md p-6 flex gap-6 items-center">
-            <img
-              src={userInfo.photo}
-              alt={userInfo.name}
-              className="w-24 h-24 rounded-full border"
-            />
+      {/* Profile Form */}
+      <div className="max-w-4xl mx-auto p-6 bg-white mt-6 rounded shadow">
+        <h1 className="text-2xl font-bold mb-4">User Profile</h1>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Left */}
+          <div className="space-y-4">
             <div>
-              <h2 className="text-xl font-semibold">{userInfo.name}</h2>
-              <p className="text-gray-600 text-sm mb-2">{userInfo.email}</p>
-              <p className="text-sm text-green-700">
-                Skills Offered ⇒ {userInfo.skillsOffered.join(", ")}
-              </p>
-              <p className="text-sm text-blue-700">
-                Skills Wanted ⇒ {userInfo.skillsWanted.join(", ")}
-              </p>
-              <p className="text-sm mt-1 text-gray-600">
-                Rating: {userInfo.rating.toFixed(1)} / 5
-              </p>
+              <label className="block font-semibold">Name</label>
+              <input
+                value={form.name}
+                onChange={(e) => handleChange("name", e.target.value)}
+                className="w-full border rounded px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold">Location</label>
+              <input
+                value={form.location}
+                onChange={(e) => handleChange("location", e.target.value)}
+                className="w-full border rounded px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold">Skills Offered</label>
+              <div className="flex flex-wrap gap-2">
+                {form.skillsOffered.map((skill, i) => (
+                  <span key={i} className="bg-gray-200 rounded-full px-3 py-1 text-sm flex items-center">
+                    {skill}
+                    <button onClick={() => removeTag("skillsOffered", i)} className="ml-2 text-red-600 font-bold">×</button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex mt-2 gap-2">
+                <input
+                  value={newOffered}
+                  onChange={(e) => setNewOffered(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addTag("skillsOffered", newOffered)}
+                  placeholder="Add skill"
+                  className="border rounded px-2 py-1 flex-1"
+                />
+                <button onClick={() => addTag("skillsOffered", newOffered)} className="bg-sky-500 text-white px-3 py-1 rounded">Add</button>
+              </div>
+            </div>
+            <div>
+              <label className="block font-semibold">Availability</label>
+              <input
+                value={form.availability}
+                onChange={(e) => handleChange("availability", e.target.value)}
+                className="w-full border rounded px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold">Profile</label>
+              <select
+                value={form.isPublic ? "Public" : "Private"}
+                onChange={(e) => handleChange("isPublic", e.target.value === "Public")}
+                className="w-full border rounded px-3 py-2"
+              >
+                <option>Public</option>
+                <option>Private</option>
+              </select>
             </div>
           </div>
-        ) : (
-          <p className="text-red-500">User info not found.</p>
-        )}
+
+          {/* Right */}
+          <div className="space-y-4">
+            <div className="text-center">
+              <img src={form.photo} className="w-32 h-32 rounded-full mx-auto" />
+              <div className="mt-2 space-x-3 text-sm">
+                <button className="text-blue-600 hover:underline">Add/Edit</button>
+                <button onClick={() => handleChange("photo", "")} className="text-red-600 hover:underline">Remove</button>
+              </div>
+            </div>
+            <div>
+              <label className="block font-semibold">Skills Wanted</label>
+              <div className="flex flex-wrap gap-2">
+                {form.skillsWanted.map((skill, i) => (
+                  <span key={i} className="bg-gray-200 rounded-full px-3 py-1 text-sm flex items-center">
+                    {skill}
+                    <button onClick={() => removeTag("skillsWanted", i)} className="ml-2 text-red-600 font-bold">×</button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex mt-2 gap-2">
+                <input
+                  value={newWanted}
+                  onChange={(e) => setNewWanted(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addTag("skillsWanted", newWanted)}
+                  placeholder="Add skill"
+                  className="border rounded px-2 py-1 flex-1"
+                />
+                <button onClick={() => addTag("skillsWanted", newWanted)} className="bg-sky-500 text-white px-3 py-1 rounded">Add</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div className="mt-6 flex justify-end gap-4">
+          <button onClick={handleSave} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            Save
+          </button>
+          <button onClick={handleDiscard} className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+            Discard
+          </button>
+        </div>
       </div>
     </div>
   );

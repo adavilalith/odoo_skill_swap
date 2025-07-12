@@ -1,32 +1,26 @@
-import React from "react";
-
 interface PaginationProps {
-  totalPages: number;
-  currentPage: number;
+  total: number;
+  page: number;
+  usersPerPage: number;
   onPageChange: (page: number) => void;
 }
 
-const Pagination: React.FC<PaginationProps> = ({
-  totalPages,
-  currentPage,
-  onPageChange,
-}) => {
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+const Pagination = ({ total, page, usersPerPage, onPageChange }: PaginationProps) => {
+  const totalPages = Math.ceil(total / usersPerPage);
+
+  if (totalPages <= 1) return null;
 
   return (
-    <div className="mt-8 flex justify-center gap-2 flex-wrap">
-      {pages.map((page) => (
+    <div className="mt-8 flex justify-center gap-2">
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
         <button
-          key={page}
-          onClick={() => onPageChange(page)}
-          className={`px-4 py-2 border rounded font-medium transition
-            ${
-              currentPage === page
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-gray-700 hover:bg-gray-100 border-gray-300"
-            }`}
+          key={n}
+          onClick={() => onPageChange(n)}
+          className={`px-3 py-1 border rounded ${
+            page === n ? "bg-blue-600 text-white" : "bg-white"
+          }`}
         >
-          {page}
+          {n}
         </button>
       ))}
     </div>

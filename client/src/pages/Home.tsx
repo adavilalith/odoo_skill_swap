@@ -1,29 +1,54 @@
-import { useState } from "react";
-import { users } from "../data/users";
-import UserCard from "../components/UserCard";
+// src/pages/Home.tsx
+import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { UserCard } from "../components/UserCard";
 import Pagination from "../components/Pagination";
 import Navbar from "../components/Navbar";
+import type { UserProfile } from "../types";
 
 const Home = () => {
-  const publicUsers = users.filter((user) => user.isPublic);
+  const { isLoggedIn } = useAuth();
+  const [users, setUsers] = useState<UserProfile[]>([]);
   const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const usersPerPage = 5;
 
-  const paginated = publicUsers.slice((page - 1) * usersPerPage, page * usersPerPage);
-  const totalPages = Math.ceil(publicUsers.length / usersPerPage);
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const offset = (page - 1) * usersPerPage;
+      try {
+        const res = await fetch(`/api/getUsers?limit=${usersPerPage}&offset=${offset}`);
+        const data = await res.json();
+        setUsers(data.users);
+        setTotal(data.total);
+      } catch (err) {
+        console.error("Failed to fetch users", err);
+      }
+    };
+
+    fetchUsers();
+  }, [page]);
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className="p-6">
-        <h2 className="text-2xl font-bold mb-6">Public Profiles</h2>
+
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-6">Explore Users</h1>
+
         <div className="space-y-6">
-          {paginated.map((user) => (
-            <UserCard key={user.id} user={user} />
+          {users.map((user) => (
+            <UserCard key={user.id} user={user} isLoggedIn={isLoggedIn} />
           ))}
         </div>
-        <Pagination totalPages={totalPages} currentPage={page} onPageChange={setPage} />
-      </main>
+
+        <Pagination
+          total={total}
+          page={page}
+          usersPerPage={usersPerPage}
+          onPageChange={setPage}
+        />
+      </div>
     </div>
   );
 };
