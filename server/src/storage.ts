@@ -6,6 +6,25 @@ export const getUserByEmail = async (email: string) => {
   return await db.collection("users").findOne({ email });
 };
 
+export const createUser = async (userData: {
+  name: string;
+  email: string;
+  password: string; // hashed
+}) => {
+  const db = getDB();
+  const collection = db.collection("users");
+  await collection.insertOne({
+    ...userData,
+    location: "",
+    photo: "",
+    skillsOffered: [],
+    skillsWanted: [],
+    availability: "weekends",
+    isPublic: true,
+    rating: 0,
+  });
+};
+
 export const getUsers = async (limit: number, offset: number) => {
   const db = getDB();
   const users = await db

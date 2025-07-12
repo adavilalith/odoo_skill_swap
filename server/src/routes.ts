@@ -1,10 +1,49 @@
 import express from "express";
-import { getUserByEmail,updateUserByEmail, getUsers, sendRequestByEmail,getRequestsByEmail, updateRequestStatus, hasAcceptedSwap, getReviewsByUser, addReview, deleteRequestById } from "./storage";
+import { getUserByEmail,updateUserByEmail, getUsers, sendRequestByEmail,getRequestsByEmail, updateRequestStatus, hasAcceptedSwap, getReviewsByUser, addReview, deleteRequestById, createUser } from "./storage";
+import bcrypt from "bcrypt";
 
 const router = express.Router();
 
 router.get("/", (req, res) => {
   res.send("Express + TypeScript is working!");
+});
+
+router.post("/api/signup", async (req, res) => {
+  const { name, email, password } = req.body;
+  try {
+    const existingUser = await getUserByEmail(email);
+    if (existingUser) {
+      return res.status(400).json({ error: "Email already registered" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await createUser({ name, email, password: hashedPassword });
+
+    res.status(201).json({ message: "Signup successful" });
+  } catch (err) {
+    res.status(500).json({ error: "Signup failed" });
+  }
+});
+
+router.post("/api/signin", async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await getUserByEmail(email);
+    if (!user) {
+      return res.status(400).json({ error: "Invalid email or password" });
+    }
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(400).json({ error: "Invalid email or password" });
+    }
+
+    // Success, send back user data (omit password)
+    const { password: _, ...userWithoutPassword } = user;
+    res.json({ user: userWithoutPassword });
+  } catch (err) {
+    res.status(500).json({ error: "Signin failed" });
+  }
 });
 
 router.post("/api/getUserByEmail", async (req, res) => {

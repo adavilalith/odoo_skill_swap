@@ -65,9 +65,9 @@ const Profile = () => {
   };
 
   const handleDiscard = () => {
-    navigate("/home");
+    navigate("/");
   };
-
+// 
   if (!user) return null;
 
   return (

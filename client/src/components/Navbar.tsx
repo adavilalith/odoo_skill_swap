@@ -5,6 +5,11 @@ const Navbar = () => {
   const { isLoggedIn, user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
     <nav className="flex justify-between items-center p-4 bg-white shadow-md">
       <h1 className="text-xl font-bold text-odoo-primary">
@@ -14,12 +19,12 @@ const Navbar = () => {
       <div className="flex items-center gap-4">
         {!isLoggedIn ? (
           <>
-           <Link to="/" className="text-gray-700 hover:text-odoo-primary">
+            <Link to="/" className="text-gray-700 hover:text-odoo-primary">
               Home
             </Link>
-          <Link to="/login" className="text-odoo-primary font-semibold">
-            Login
-          </Link>
+            <Link to="/login" className="text-odoo-primary font-semibold">
+              Login
+            </Link>
           </>
         ) : (
           <>
@@ -35,6 +40,12 @@ const Navbar = () => {
               title={user?.email}
             >
               {user?.email?.charAt(0).toUpperCase()}
+            </button>
+            <button
+              onClick={handleLogout}
+              className="ml-2 text-red-600 hover:underline text-sm"
+            >
+              Logout
             </button>
           </>
         )}

@@ -1,28 +1,43 @@
+// src/backend/populate.ts
 import { connectToDB, getDB } from "./db";
 import { users } from "./data/users";
+import bcrypt from "bcrypt";
 
 const getRandomItem = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
 const populateUsers = async () => {
   const db = getDB();
-  await db.collection("users").deleteMany({});
-  const result = await db.collection("users").insertMany(users);
+  const collection = db.collection("users");
+
+  await collection.deleteMany({});
+
+  const hashedPassword = await bcrypt.hash("123456", 10); // hash for all users
+
+  const enhancedUsers = users.map((user) => ({
+    ...user,
+    password: hashedPassword,
+    location: "",
+    photo: user.photo || "",
+    skillsOffered: user.skillsOffered || [],
+    skillsWanted: user.skillsWanted || [],
+    availability: "weekends",
+    isPublic: true,
+    rating: 0,
+  }));
+
+  const result = await collection.insertMany(enhancedUsers);
   console.log(`Populated ${result.insertedCount} users`);
 };
 
 const populateRequests = async () => {
   const db = getDB();
-
-  // Get user emails
   const emails = users.map((u) => u.email);
-
-  // Generate 20 random requests
   const requests = [];
-  for (let i = 1; i <= 20; i++) {
+
+  for (let i = 1; i <= 50; i++) {
     let fromEmail = getRandomItem(emails);
     let toEmail = getRandomItem(emails);
 
-    // Ensure they’re not the same
     while (fromEmail === toEmail) {
       toEmail = getRandomItem(emails);
     }
@@ -34,11 +49,11 @@ const populateRequests = async () => {
     const skillWanted = getRandomItem(toUser?.skillsOffered || ["N/A"]);
 
     requests.push({
-      requestNo: i,
-      fromEmail,
-      toEmail,
-      skillOffered,
-      skillWanted,
+      senderEmail: fromEmail,
+      receiverEmail: toEmail,
+      providedSkill: skillOffered,
+      requestedSkill: skillWanted,
+      message: "Let's skill swap!",
       status: getRandomItem(["pending", "accepted", "rejected"]),
       timestamp: new Date(),
     });

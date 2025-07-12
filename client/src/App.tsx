@@ -5,6 +5,7 @@ import Profile from './pages/Profile';
 import UserPage from './pages/UserPage';
 import SendRequest from './pages/SendRequest';
 import RequestsPage from './pages/RequestsPage';
+import Signup from './pages/Signup';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/user/:id" element={<UserPage />} />
         <Route path="/send-request" element={<SendRequest />} />
         <Route path="/requests" element={<RequestsPage />} />
+        <Route path="Signup" element={<Signup />} />
 
       </Routes>
     </Router>
