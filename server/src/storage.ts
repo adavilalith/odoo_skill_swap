@@ -128,3 +128,8 @@ export const getReviewsByUser = async (email: string) => {
 
   return await db.collection("reviews").find({ reviewedEmail: email }).sort({ timestamp: -1 }).toArray();
 };
+
+export const deleteRequestById = async (requestId: string) => {
+  const db = getDB();
+  return await db.collection("requests").deleteOne({ _id: new ObjectId(requestId) });
+};

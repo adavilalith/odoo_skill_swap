@@ -1,5 +1,5 @@
 import express from "express";
-import { getUserByEmail,updateUserByEmail, getUsers, sendRequestByEmail,getRequestsByEmail, updateRequestStatus, hasAcceptedSwap, getReviewsByUser, addReview } from "./storage";
+import { getUserByEmail,updateUserByEmail, getUsers, sendRequestByEmail,getRequestsByEmail, updateRequestStatus, hasAcceptedSwap, getReviewsByUser, addReview, deleteRequestById } from "./storage";
 
 const router = express.Router();
 
@@ -151,6 +151,23 @@ router.post("/api/addReview", async (req, res) => {
   }
 });
 
+router.post("/api/deleteRequestById", async (req, res) => {
+  const { requestId } = req.body;
 
+  if (!requestId) {
+    return res.status(400).json({ error: "Request ID is required" });
+  }
+
+  try {
+    const result = await deleteRequestById(requestId);
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: "Request not found or already deleted" });
+    }
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Failed to delete request:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 export default router;

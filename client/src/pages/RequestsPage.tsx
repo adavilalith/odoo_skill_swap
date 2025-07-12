@@ -44,6 +44,26 @@ const Requests = () => {
     fetchRequests();
   }, [user]);
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this request?")) return;
+
+    try {
+      const res = await fetch("/api/deleteRequestById", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requestId: id }),
+      });
+      if (res.ok) {
+        fetchRequests(); // refresh
+      } else {
+        alert("Failed to delete request.");
+      }
+    } catch (err) {
+      console.error("Failed to delete request", err);
+    }
+  };
+
+
   const updateStatus = async (id: string, status: "accepted" | "rejected") => {
     try {
       await fetch("/api/updateRequestStatus", {
@@ -173,11 +193,23 @@ const Requests = () => {
                     >
                       Reject
                     </button>
+                    
+                    
                   </div>
+                )}
+                {req.receiverEmail === user?.email && req.status !== "accepted" && (
+                    <button
+                      onClick={() => handleDelete(req._id)}
+                      className="text-gray-600 font-semibold hover:underline"
+                    >
+                      Delete
+                    </button>
                 )}
               </div>
             </div>
           ))}
+          
+          
         </div>
 
         {/* Pagination */}
