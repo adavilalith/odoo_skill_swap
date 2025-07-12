@@ -5,6 +5,8 @@
 - 👤 **Team Lead:** Lalith Adavi  
 - 📧 **Email:** 245122733063@mvsrec.edu.in  
 - 🎮 **Discord:** @adavilalith
+- video link: https://drive.google.com/file/d/1a-THiqT8dVqngpSjYzIe8-7koERsFLxI/view?usp=sharing
+- alt video link: https://drive.google.com/file/d/1j_9PRhMt02M4bCTqzQh8yZqbbrOlHVMu/view?usp=sharing
 ---
 
 ## 🧩 Problem Statement
