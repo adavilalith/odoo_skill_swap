@@ -15,8 +15,21 @@ const UserPage = () => {
     return <div className="p-6">User not found.</div>;
   }
 
-  const handleRequest = () => {
-    alert(isLoggedIn ? "Request sent!" : "Please log in first.");
+  const handleRequest = (user:UserProfile) => {
+    if (!isLoggedIn) {
+    alert("Please log in to send a request.");
+    navigate("/login");
+    return;
+  }
+
+  navigate("/send-request", {
+    state: {
+      receiverEmail: user.email,
+      receiverName: user.name,
+      receiverPhoto: user.photo,
+      receiverSkillsWanted: user.skillsWanted,
+    },
+  });
   };
 
   return (
@@ -62,8 +75,8 @@ const UserPage = () => {
           </div>
 
           <button
-            onClick={handleRequest}
-            className="mt-4 bg-sky-500 text-white px-4 py-2 rounded hover:bg-sky-600"
+            onClick={() => handleRequest(user)}
+            className="bg-sky-500 text-white px-3 py-1 rounded hover:bg-sky-600"
           >
             Request
           </button>

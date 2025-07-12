@@ -7,7 +7,7 @@ import Navbar from "../components/Navbar";
 import type { UserProfile } from "../types";
 
 const Home = () => {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth(); // access logged in user
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -19,15 +19,20 @@ const Home = () => {
       try {
         const res = await fetch(`/api/getUsers?limit=${usersPerPage}&offset=${offset}`);
         const data = await res.json();
-        setUsers(data.users);
-        setTotal(data.total);
+
+        const filtered = user
+          ? data.users.filter((u: UserProfile) => u.email !== user.email)
+          : data.users;
+
+        setUsers(filtered);
+        setTotal(data.total - (user ? 1 : 0)); // adjust total if user is excluded
       } catch (err) {
         console.error("Failed to fetch users", err);
       }
     };
 
     fetchUsers();
-  }, [page]);
+  }, [page, user]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -36,11 +41,11 @@ const Home = () => {
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-6">Explore Users</h1>
 
-        <div className="space-y-6">
-          {users.map((user) => (
-            <UserCard key={user.id} user={user} isLoggedIn={isLoggedIn} />
-          ))}
-        </div>
+        <div className="space-y-6 max-w-2xl mx-auto">
+        {users.map((user) => (
+          <UserCard key={user.id} user={user} isLoggedIn={isLoggedIn} />
+        ))}
+      </div>
 
         <Pagination
           total={total}

@@ -1,5 +1,5 @@
 import express from "express";
-import { getUserByEmail,updateUserByEmail, getUsers } from "./storage";
+import { getUserByEmail,updateUserByEmail, getUsers, sendRequestByEmail,getRequestsByEmail, updateRequestStatus } from "./storage";
 
 const router = express.Router();
 
@@ -43,6 +43,22 @@ router.post("/api/updateUserByEmail", async (req, res) => {
   }
 });
 
+router.post("/api/sendRequestByEmail", async (req, res) => {
+  const { senderEmail, receiverEmail, providedSkill, requestedSkill, message } = req.body;
+
+  if (!senderEmail || !receiverEmail || !providedSkill || !requestedSkill || !message) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  try {
+    const result = await sendRequestByEmail(senderEmail, receiverEmail, providedSkill, requestedSkill, message);
+    res.json({ success: true, requestId: result.insertedId });
+  } catch (err) {
+    console.error("Error sending request:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.get("/api/getUsers", async (req, res) => {
   try {
     console.log("Received request for users with query:", req.query);
@@ -57,5 +73,37 @@ router.get("/api/getUsers", async (req, res) => {
   }
 });
 
+router.get("/api/getRequestsByEmail", async (req, res) => {
+  const email = req.query.email as string;
+  console.log("Fetching requests for email:", email);
+
+  if (!email) {
+    return res.status(400).json({ error: "Missing email parameter" });
+  }
+
+  try {
+    const { sent, received } = await getRequestsByEmail(email);
+    res.json({ sent, received });
+  } catch (err) {
+    console.error("Error fetching requests:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/api/updateRequestStatus", async (req, res) => {
+  const { requestId, status } = req.body;
+  console.log("Updating request status:", requestId, status); 
+  if (!requestId || !["accepted", "rejected"].includes(status)) {
+    return res.status(400).json({ error: "Invalid request ID or status." });
+  }
+
+  try {
+    const result = await updateRequestStatus(requestId, status);
+    res.json({ success: true, updatedCount: result.modifiedCount });
+  } catch (err) {
+    console.error("Error updating request status:", err);
+    res.status(500).json({ error: "Failed to update request status." });
+  }
+});
 
 export default router;

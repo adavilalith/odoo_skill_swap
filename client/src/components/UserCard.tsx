@@ -10,9 +10,22 @@ interface Props {
 export const UserCard = ({ user, isLoggedIn }: Props) => {
   const navigate = useNavigate();
 
-  const handleRequest = (e: React.MouseEvent) => {
+  const handleRequest = (e: React.MouseEvent,user:UserProfile) => {
     e.stopPropagation();
-    alert(isLoggedIn ? "Request sent!" : "Please log in to request a swap.");
+   if (!isLoggedIn) {
+    alert("Please log in to send a request.");
+    navigate("/login");
+    return;
+  }
+
+  navigate("/send-request", {
+    state: {
+      receiverEmail: user.email,
+      receiverName: user.name,
+      receiverPhoto: user.photo,
+      receiverSkillsWanted: user.skillsWanted,
+    },
+  });
   };
 
   const goToUserPage = () => {
@@ -52,10 +65,10 @@ export const UserCard = ({ user, isLoggedIn }: Props) => {
       <div className="mt-4 flex justify-between items-center">
         <p className="text-sm text-gray-600">Rating: {user.rating}</p>
         <button
-          className="bg-sky-500 text-white px-3 py-1 rounded hover:bg-sky-600"
-          onClick={handleRequest}
-        >
-          Request
+            onClick={(e) => handleRequest(e,user)}
+            className="bg-sky-500 text-white px-3 py-1 rounded hover:bg-sky-600"
+          >
+            Request
         </button>
       </div>
     </div>
