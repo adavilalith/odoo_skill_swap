@@ -1,46 +1,63 @@
 // src/components/UserCard.tsx
+import { useNavigate } from "react-router-dom";
 import type { UserProfile } from "../types";
 
-export const UserCard = ({
-  user,
-  isLoggedIn,
-}: {
+interface Props {
   user: UserProfile;
   isLoggedIn: boolean;
-}) => {
-  const handleRequest = () => {
-    if (!isLoggedIn) {
-      alert("Please log in to send a request.");
-    } else {
-      alert(`Request sent to ${user.name}!`);
-    }
+}
+
+export const UserCard = ({ user, isLoggedIn }: Props) => {
+  const navigate = useNavigate();
+
+  const handleRequest = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    alert(isLoggedIn ? "Request sent!" : "Please log in to request a swap.");
+  };
+
+  const goToUserPage = () => {
+    navigate(`/user/${user.id}`, { state: { user } });
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 flex gap-4 items-center">
-      <img
-        src={user.photo}
-        alt={user.name}
-        className="w-20 h-20 rounded-full"
-      />
-      <div className="flex-1">
-        <h2 className="text-xl font-semibold">{user.name}</h2>
-        <p className="text-sm text-green-700">
-          Skills Offered ⇒ {user.skillsOffered.join(", ")}
-        </p>
-        <p className="text-sm text-blue-700">
-          Skills Wanted ⇒ {user.skillsWanted.join(", ")}
-        </p>
-        <p className="text-sm mt-1 text-gray-600">
-          Rating: {user.rating.toFixed(1)}/5
-        </p>
+    <div
+      className="border p-4 rounded shadow hover:shadow-md transition cursor-pointer"
+      onClick={goToUserPage}
+    >
+      <div className="flex justify-between items-center">
+        <h2 className="text-lg font-bold">{user.name}</h2>
+        <img
+          src={user.photo}
+          alt={user.name}
+          className="w-12 h-12 rounded-full object-cover"
+        />
       </div>
-      <button
-        onClick={handleRequest}
-        className="bg-sky-500 text-white px-4 py-2 rounded hover:bg-sky-600"
-      >
-        Request
-      </button>
+      <p className="text-sm mt-2 font-semibold">Skills Offered:</p>
+      <div className="flex flex-wrap gap-2 mt-1">
+        {user.skillsOffered.map((skill, i) => (
+          <span key={i} className="bg-blue-100 text-sm px-2 py-1 rounded-full">
+            {skill}
+          </span>
+        ))}
+      </div>
+      <p className="text-sm mt-2 font-semibold">Skills Wanted:</p>
+      <div className="flex flex-wrap gap-2 mt-1">
+        {user.skillsWanted.map((skill, i) => (
+          <span key={i} className="bg-red-100 text-sm px-2 py-1 rounded-full">
+            {skill}
+          </span>
+        ))}
+      </div>
+
+      <div className="mt-4 flex justify-between items-center">
+        <p className="text-sm text-gray-600">Rating: {user.rating}</p>
+        <button
+          className="bg-sky-500 text-white px-3 py-1 rounded hover:bg-sky-600"
+          onClick={handleRequest}
+        >
+          Request
+        </button>
+      </div>
     </div>
   );
 };
