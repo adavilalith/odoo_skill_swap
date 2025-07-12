@@ -87,3 +87,44 @@ export const updateRequestStatus = async (requestId: string, status: "Accepted" 
   return result;
 };
 
+
+export const hasAcceptedSwap = async (user1: string, user2: string) => {
+  const db = getDB();
+  const accepted = await db.collection("requests").findOne({
+    status: "accepted",
+    $or: [
+      { senderEmail: user1, receiverEmail: user2 },
+      { senderEmail: user2, receiverEmail: user1 }
+    ]
+  });
+  return !!accepted;
+};
+
+export const addReview = async (
+  reviewerEmail: string,
+  reviewedEmail: string,
+  rating: number,
+  text: string
+) => {
+  const db = getDB();
+
+  const reviewer = await db.collection("users").findOne({ email: reviewerEmail });
+  if (!reviewer) throw new Error("Reviewer not found");
+
+  const review = {
+    reviewerEmail,
+    reviewedEmail,
+    reviewerName: reviewer.name || reviewerEmail,
+    rating,
+    text,
+    timestamp: new Date(),
+  };
+
+  await db.collection("reviews").insertOne(review);
+};
+
+export const getReviewsByUser = async (email: string) => {
+  const db = getDB();
+
+  return await db.collection("reviews").find({ reviewedEmail: email }).sort({ timestamp: -1 }).toArray();
+};

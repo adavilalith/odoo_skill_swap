@@ -9,3 +9,9 @@ export interface UserProfile {
   rating: number;
   isPublic: boolean;
 }
+export interface Review {
+  reviewerName: string;
+  rating: number;
+  text: string;
+}
+

@@ -1,5 +1,5 @@
 import express from "express";
-import { getUserByEmail,updateUserByEmail, getUsers, sendRequestByEmail,getRequestsByEmail, updateRequestStatus } from "./storage";
+import { getUserByEmail,updateUserByEmail, getUsers, sendRequestByEmail,getRequestsByEmail, updateRequestStatus, hasAcceptedSwap, getReviewsByUser, addReview } from "./storage";
 
 const router = express.Router();
 
@@ -105,5 +105,52 @@ router.post("/api/updateRequestStatus", async (req, res) => {
     res.status(500).json({ error: "Failed to update request status." });
   }
 });
+router.get("/api/hasAcceptedRequest", async (req, res) => {
+  const { sender, receiver } = req.query;
+  if (!sender || !receiver) return res.status(400).json({ error: "Both sender and receiver required" });
+
+  try {
+    const allowed = await hasAcceptedSwap(sender as string, receiver as string);
+    res.json({ allowed });
+  } catch (err) {
+    console.error("Check accepted request failed", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/api/getReviewsByUser", async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.status(400).json({ error: "Email required" });
+
+  try {
+    const reviews = await getReviewsByUser(email as string);
+    res.json({ reviews });
+  } catch (err) {
+    console.error("Failed to fetch reviews", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+router.post("/api/addReview", async (req, res) => {
+  const { reviewerEmail, reviewedEmail, rating, text } = req.body;
+
+  if (!reviewerEmail || !reviewedEmail || !rating || !text) {
+    return res.status(400).json({ error: "Missing fields" });
+  }
+
+  try {
+    const allowed = await hasAcceptedSwap(reviewerEmail, reviewedEmail);
+    if (!allowed) {
+      return res.status(403).json({ error: "You are not allowed to review this user." });
+    }
+
+    await addReview(reviewerEmail, reviewedEmail, rating, text);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Add review failed", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
 
 export default router;
