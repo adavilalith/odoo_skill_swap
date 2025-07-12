@@ -13,9 +13,14 @@ const Navbar = () => {
 
       <div className="flex items-center gap-4">
         {!isLoggedIn ? (
+          <>
+           <Link to="/" className="text-gray-700 hover:text-odoo-primary">
+              Home
+            </Link>
           <Link to="/login" className="text-odoo-primary font-semibold">
             Login
           </Link>
+          </>
         ) : (
           <>
             <Link to="/requests" className="text-gray-700 hover:text-odoo-primary">

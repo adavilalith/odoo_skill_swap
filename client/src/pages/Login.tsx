@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Navbar from "../components/Navbar";
 
 const Login = () => {
   const { login } = useAuth();
@@ -24,6 +25,8 @@ const Login = () => {
   };
 
   return (
+  <>
+    <Navbar />
     <div className="flex justify-center items-center h-screen bg-gray-100">
       <form
         onSubmit={handleLogin}
@@ -55,7 +58,7 @@ const Login = () => {
         </button>
       </form>
     </div>
-  );
+  </>);
 };
 
 export default Login;
